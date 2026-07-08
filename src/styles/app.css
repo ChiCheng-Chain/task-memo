@@ -94,3 +94,68 @@ textarea {
   padding: 24px;
   background: rgb(255 255 255 / 28%);
 }
+
+.task-editor {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.task-editor input {
+  min-height: 42px;
+  border: 1px solid var(--color-line);
+  background: rgb(255 255 255 / 52%);
+  padding: 0 12px;
+}
+
+.task-editor button,
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--color-line);
+  color: var(--color-ink);
+  background: rgb(255 255 255 / 44%);
+  cursor: pointer;
+}
+
+.task-editor button {
+  min-height: 42px;
+  padding: 0 14px;
+}
+
+.task-list {
+  display: grid;
+  gap: 2px;
+}
+
+.task-row {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 10px;
+  align-items: start;
+  min-height: 48px;
+  padding: 8px 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.task-row-completed {
+  color: rgb(36 34 31 / 48%);
+}
+
+.task-title,
+.task-note {
+  margin: 0;
+}
+
+.task-note {
+  margin-top: 4px;
+  font-size: 13px;
+  color: rgb(36 34 31 / 62%);
+}
+
+.error-text {
+  color: var(--color-warn);
+}

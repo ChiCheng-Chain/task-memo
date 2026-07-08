@@ -1,7 +1,38 @@
+import { useEffect, useState } from "react";
+import { Today } from "../pages/Today";
 import "../styles/tokens.css";
 import "../styles/app.css";
+import { taskApi, todayKey } from "./api";
+import type { Task } from "./types";
 
 export function App() {
+  const [date] = useState(todayKey());
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  async function refresh() {
+    setTasks(await taskApi.list(date));
+  }
+
+  useEffect(() => {
+    refresh().catch(() => setError("Could not load today's tasks."));
+  }, [date]);
+
+  async function createTask(title: string) {
+    await taskApi.create({ title, note: "", taskDate: date });
+    await refresh();
+  }
+
+  async function completeTask(id: string) {
+    await taskApi.complete(id);
+    await refresh();
+  }
+
+  async function restoreTask(id: string) {
+    await taskApi.restore(id);
+    await refresh();
+  }
+
   return (
     <main className="app-shell">
       <aside className="app-rail" aria-label="Primary">
@@ -12,13 +43,8 @@ export function App() {
         <button className="rail-item">Search</button>
       </aside>
       <section className="workbench">
-        <header className="workbench-header">
-          <div>
-            <p className="eyebrow">Task Memo</p>
-            <h1>Today</h1>
-          </div>
-        </header>
-        <div className="empty-state">Ready to capture the next action.</div>
+        {error ? <p className="error-text">{error}</p> : null}
+        <Today date={date} tasks={tasks} onCreate={createTask} onComplete={completeTask} onRestore={restoreTask} />
       </section>
       <aside className="inspector" aria-label="Inspector">
         <p className="eyebrow">Inspector</p>
