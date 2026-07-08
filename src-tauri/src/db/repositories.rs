@@ -278,6 +278,82 @@ pub fn save_document(conn: &Connection, node_id: &str, content: &str) -> Result<
     get_document(conn, node_id)
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct DailyDraftDto {
+    pub id: String,
+    pub draft_date: String,
+    pub content: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+pub fn get_daily_draft(conn: &Connection, draft_date: &str) -> Result<DailyDraftDto, AppError> {
+    match conn
+        .query_row(
+            "select id, draft_date, content, created_at, updated_at from daily_drafts where draft_date = ?1",
+            params![draft_date],
+            |row| {
+                Ok(DailyDraftDto {
+                    id: row.get(0)?,
+                    draft_date: row.get(1)?,
+                    content: row.get(2)?,
+                    created_at: row.get(3)?,
+                    updated_at: row.get(4)?,
+                })
+            },
+        )
+        .optional()?
+    {
+        Some(draft) => Ok(draft),
+        None => save_daily_draft(conn, draft_date, ""),
+    }
+}
+
+pub fn save_daily_draft(conn: &Connection, draft_date: &str, content: &str) -> Result<DailyDraftDto, AppError> {
+    let existing = conn
+        .query_row(
+            "select id, created_at from daily_drafts where draft_date = ?1",
+            params![draft_date],
+            |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)),
+        )
+        .optional()?;
+    let now = chrono::Utc::now().to_rfc3339();
+
+    let id = match existing {
+        Some((id, _created_at)) => {
+            conn.execute(
+                "update daily_drafts set content = ?1, updated_at = ?2 where id = ?3",
+                params![content, now, id],
+            )?;
+            id
+        }
+        None => {
+            let id = Uuid::new_v4().to_string();
+            conn.execute(
+                "insert into daily_drafts (id, draft_date, content, created_at, updated_at) values (?1, ?2, ?3, ?4, ?4)",
+                params![id, draft_date, content, now],
+            )?;
+            id
+        }
+    };
+
+    conn.query_row(
+        "select id, draft_date, content, created_at, updated_at from daily_drafts where id = ?1",
+        params![id],
+        |row| {
+            Ok(DailyDraftDto {
+                id: row.get(0)?,
+                draft_date: row.get(1)?,
+                content: row.get(2)?,
+                created_at: row.get(3)?,
+                updated_at: row.get(4)?,
+            })
+        },
+    )
+    .map_err(AppError::from)
+}
+
 #[cfg(test)]
 mod task_tests {
     use super::*;
@@ -340,5 +416,25 @@ mod library_tests {
 
         let saved = save_document(&conn, &doc.node_id, "Remember stale closure behavior.").expect("save doc");
         assert_eq!(saved.content, "Remember stale closure behavior.");
+    }
+}
+
+#[cfg(test)]
+mod daily_tests {
+    use super::*;
+    use crate::db::migrations::{run_migrations, seed_categories};
+    use rusqlite::Connection;
+
+    #[test]
+    fn upserts_one_draft_per_date() {
+        let conn = Connection::open_in_memory().expect("open memory db");
+        run_migrations(&conn).expect("migrate");
+        seed_categories(&conn).expect("seed");
+
+        let first = save_daily_draft(&conn, "2026-07-08", "First draft").expect("save first");
+        let second = save_daily_draft(&conn, "2026-07-08", "Updated draft").expect("save second");
+
+        assert_eq!(first.id, second.id);
+        assert_eq!(second.content, "Updated draft");
     }
 }

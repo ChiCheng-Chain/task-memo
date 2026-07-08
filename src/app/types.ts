@@ -39,3 +39,11 @@ export interface DocumentRecord {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface DailyDraft {
+  id: string;
+  draftDate: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}

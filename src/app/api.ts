@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { CreateTaskInput, DocumentRecord, LibraryNode, Task } from "./types";
+import type { CreateTaskInput, DailyDraft, DocumentRecord, LibraryNode, Task } from "./types";
 
 export const taskApi = {
   list(taskDate: string) {
@@ -38,5 +38,14 @@ export const libraryApi = {
   },
   saveDocument(nodeId: string, content: string) {
     return invoke<DocumentRecord>("save_document", { input: { nodeId, content } });
+  },
+};
+
+export const dailyApi = {
+  getDraft(draftDate: string) {
+    return invoke<DailyDraft>("get_daily_draft", { draftDate });
+  },
+  saveDraft(draftDate: string, content: string) {
+    return invoke<DailyDraft>("save_daily_draft", { input: { draftDate, content } });
   },
 };
