@@ -5,6 +5,11 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
+            commands::library::list_library_nodes,
+            commands::library::create_library_folder,
+            commands::library::create_library_document,
+            commands::library::get_document,
+            commands::library::save_document,
             commands::tasks::list_tasks,
             commands::tasks::create_task,
             commands::tasks::update_task,

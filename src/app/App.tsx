@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Today } from "../pages/Today";
+import { Library } from "../pages/Library";
 import "../styles/tokens.css";
 import "../styles/app.css";
 import { taskApi, todayKey } from "./api";
 import type { Task } from "./types";
 
 export function App() {
+  const [activeView, setActiveView] = useState<"today" | "library">("today");
   const [date] = useState(todayKey());
   const [tasks, setTasks] = useState<Task[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -37,14 +39,24 @@ export function App() {
     <main className="app-shell">
       <aside className="app-rail" aria-label="Primary">
         <div className="rail-mark">TM</div>
-        <button className="rail-item rail-item-active">Today</button>
-        <button className="rail-item">Library</button>
+        <button className={`rail-item ${activeView === "today" ? "rail-item-active" : ""}`} onClick={() => setActiveView("today")}>
+          Today
+        </button>
+        <button className={`rail-item ${activeView === "library" ? "rail-item-active" : ""}`} onClick={() => setActiveView("library")}>
+          Library
+        </button>
         <button className="rail-item">Dates</button>
         <button className="rail-item">Search</button>
       </aside>
       <section className="workbench">
-        {error ? <p className="error-text">{error}</p> : null}
-        <Today date={date} tasks={tasks} onCreate={createTask} onComplete={completeTask} onRestore={restoreTask} />
+        {activeView === "today" ? (
+          <>
+            {error ? <p className="error-text">{error}</p> : null}
+            <Today date={date} tasks={tasks} onCreate={createTask} onComplete={completeTask} onRestore={restoreTask} />
+          </>
+        ) : (
+          <Library />
+        )}
       </section>
       <aside className="inspector" aria-label="Inspector">
         <p className="eyebrow">Inspector</p>

@@ -129,6 +129,155 @@ pub fn restore_task(conn: &Connection, id: &str) -> Result<TaskDto, AppError> {
     get_task(conn, id)
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryNodeDto {
+    pub id: String,
+    pub parent_id: Option<String>,
+    pub node_type: String,
+    pub category: Option<String>,
+    pub title: String,
+    pub sort_order: i64,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentDto {
+    pub id: String,
+    pub node_id: String,
+    pub title: String,
+    pub content: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+fn row_to_library_node(row: &rusqlite::Row<'_>) -> rusqlite::Result<LibraryNodeDto> {
+    Ok(LibraryNodeDto {
+        id: row.get(0)?,
+        parent_id: row.get(1)?,
+        node_type: row.get(2)?,
+        category: row.get(3)?,
+        title: row.get(4)?,
+        sort_order: row.get(5)?,
+        created_at: row.get(6)?,
+        updated_at: row.get(7)?,
+    })
+}
+
+pub fn list_library_nodes(conn: &Connection) -> Result<Vec<LibraryNodeDto>, AppError> {
+    let mut stmt = conn.prepare(
+        "
+        select id, parent_id, node_type, category, title, sort_order, created_at, updated_at
+        from library_nodes
+        order by parent_id is not null, parent_id, sort_order, title
+        ",
+    )?;
+    let rows = stmt.query_map([], row_to_library_node)?;
+    let mut nodes = Vec::new();
+    for row in rows {
+        nodes.push(row?);
+    }
+    Ok(nodes)
+}
+
+pub fn create_library_folder(conn: &Connection, parent_id: &str, title: &str) -> Result<LibraryNodeDto, AppError> {
+    create_library_node(conn, parent_id, "folder", title)
+}
+
+pub fn create_library_document(conn: &Connection, parent_id: &str, title: &str) -> Result<DocumentDto, AppError> {
+    let node = create_library_node(conn, parent_id, "document", title)?;
+    let id = Uuid::new_v4().to_string();
+    let now = chrono::Utc::now().to_rfc3339();
+    conn.execute(
+        "insert into documents (id, node_id, content, created_at, updated_at) values (?1, ?2, '', ?3, ?3)",
+        params![id, node.id, now],
+    )?;
+    get_document(conn, &node.id)
+}
+
+fn create_library_node(conn: &Connection, parent_id: &str, node_type: &str, title: &str) -> Result<LibraryNodeDto, AppError> {
+    let title = title.trim();
+    if title.is_empty() {
+        return Err(AppError::validation("Library title is required."));
+    }
+
+    let parent_exists: Option<String> = conn
+        .query_row("select id from library_nodes where id = ?1", params![parent_id], |row| row.get(0))
+        .optional()?;
+    if parent_exists.is_none() {
+        return Err(AppError::not_found("Parent folder was not found."));
+    }
+
+    let sort_order: i64 = conn.query_row(
+        "select coalesce(max(sort_order), -1) + 1 from library_nodes where parent_id = ?1",
+        params![parent_id],
+        |row| row.get(0),
+    )?;
+    let now = chrono::Utc::now().to_rfc3339();
+    let id = Uuid::new_v4().to_string();
+    conn.execute(
+        "
+        insert into library_nodes (id, parent_id, node_type, category, title, sort_order, created_at, updated_at)
+        values (?1, ?2, ?3, null, ?4, ?5, ?6, ?6)
+        ",
+        params![id, parent_id, node_type, title, sort_order, now],
+    )?;
+
+    get_library_node(conn, &id)
+}
+
+fn get_library_node(conn: &Connection, id: &str) -> Result<LibraryNodeDto, AppError> {
+    conn.query_row(
+        "
+        select id, parent_id, node_type, category, title, sort_order, created_at, updated_at
+        from library_nodes where id = ?1
+        ",
+        params![id],
+        row_to_library_node,
+    )
+    .optional()?
+    .ok_or_else(|| AppError::not_found("Library item was not found."))
+}
+
+pub fn get_document(conn: &Connection, node_id: &str) -> Result<DocumentDto, AppError> {
+    conn.query_row(
+        "
+        select d.id, d.node_id, n.title, d.content, d.created_at, d.updated_at
+        from documents d
+        join library_nodes n on n.id = d.node_id
+        where d.node_id = ?1
+        ",
+        params![node_id],
+        |row| {
+            Ok(DocumentDto {
+                id: row.get(0)?,
+                node_id: row.get(1)?,
+                title: row.get(2)?,
+                content: row.get(3)?,
+                created_at: row.get(4)?,
+                updated_at: row.get(5)?,
+            })
+        },
+    )
+    .optional()?
+    .ok_or_else(|| AppError::not_found("Document was not found."))
+}
+
+pub fn save_document(conn: &Connection, node_id: &str, content: &str) -> Result<DocumentDto, AppError> {
+    let now = chrono::Utc::now().to_rfc3339();
+    let changed = conn.execute(
+        "update documents set content = ?1, updated_at = ?2 where node_id = ?3",
+        params![content, now, node_id],
+    )?;
+    if changed == 0 {
+        return Err(AppError::not_found("Document was not found."));
+    }
+    conn.execute("update library_nodes set updated_at = ?1 where id = ?2", params![now, node_id])?;
+    get_document(conn, node_id)
+}
+
 #[cfg(test)]
 mod task_tests {
     use super::*;
@@ -163,5 +312,33 @@ mod task_tests {
         let conn = test_conn();
         let error = create_task(&conn, "   ", "", "2026-07-08").expect_err("reject empty title");
         assert_eq!(error.code, "validation_error");
+    }
+}
+
+#[cfg(test)]
+mod library_tests {
+    use super::*;
+    use crate::db::migrations::{run_migrations, seed_categories};
+    use rusqlite::Connection;
+
+    fn test_conn() -> Connection {
+        let conn = Connection::open_in_memory().expect("open memory db");
+        run_migrations(&conn).expect("migrate");
+        seed_categories(&conn).expect("seed");
+        conn
+    }
+
+    #[test]
+    fn create_folder_document_and_save_content() {
+        let conn = test_conn();
+        let folder = create_library_folder(&conn, "category:experience", "React").expect("create folder");
+        assert_eq!(folder.node_type, "folder");
+
+        let doc = create_library_document(&conn, &folder.id, "useEffect closure").expect("create doc");
+        assert_eq!(doc.title, "useEffect closure");
+        assert_eq!(doc.content, "");
+
+        let saved = save_document(&conn, &doc.node_id, "Remember stale closure behavior.").expect("save doc");
+        assert_eq!(saved.content, "Remember stale closure behavior.");
     }
 }

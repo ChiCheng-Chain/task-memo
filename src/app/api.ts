@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { CreateTaskInput, Task } from "./types";
+import type { CreateTaskInput, DocumentRecord, LibraryNode, Task } from "./types";
 
 export const taskApi = {
   list(taskDate: string) {
@@ -22,3 +22,21 @@ export function todayKey(date = new Date()): string {
   const day = `${date.getDate()}`.padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+
+export const libraryApi = {
+  listNodes() {
+    return invoke<LibraryNode[]>("list_library_nodes");
+  },
+  createFolder(parentId: string, title: string) {
+    return invoke<LibraryNode>("create_library_folder", { input: { parentId, title } });
+  },
+  createDocument(parentId: string, title: string) {
+    return invoke<DocumentRecord>("create_library_document", { input: { parentId, title } });
+  },
+  getDocument(nodeId: string) {
+    return invoke<DocumentRecord>("get_document", { nodeId });
+  },
+  saveDocument(nodeId: string, content: string) {
+    return invoke<DocumentRecord>("save_document", { input: { nodeId, content } });
+  },
+};
