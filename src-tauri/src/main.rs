@@ -13,6 +13,7 @@ fn main() {
             commands::library::create_library_document,
             commands::library::get_document,
             commands::library::save_document,
+            commands::search::search_all,
             commands::tasks::list_tasks,
             commands::tasks::create_task,
             commands::tasks::update_task,

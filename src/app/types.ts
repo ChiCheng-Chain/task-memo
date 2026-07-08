@@ -54,3 +54,11 @@ export interface DayTraceItem {
   title: string;
   occurredAt: string;
 }
+
+export interface SearchResult {
+  id: string;
+  source: string;
+  title: string;
+  snippet: string;
+  updatedAt: string;
+}

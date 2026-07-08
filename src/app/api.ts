@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { CreateTaskInput, DailyDraft, DayTraceItem, DocumentRecord, LibraryNode, Task } from "./types";
+import type { CreateTaskInput, DailyDraft, DayTraceItem, DocumentRecord, LibraryNode, SearchResult, Task } from "./types";
 
 export const taskApi = {
   list(taskDate: string) {
@@ -53,5 +53,11 @@ export const dailyApi = {
 export const dayApi = {
   trace(day: string) {
     return invoke<DayTraceItem[]>("get_day_trace", { day });
+  },
+};
+
+export const searchApi = {
+  all(query: string) {
+    return invoke<SearchResult[]>("search_all", { query });
   },
 };

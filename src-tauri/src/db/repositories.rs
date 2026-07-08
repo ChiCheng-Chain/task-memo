@@ -405,6 +405,61 @@ pub fn get_day_trace(conn: &Connection, day: &str) -> Result<Vec<DayTraceItemDto
     Ok(items)
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchResultDto {
+    pub id: String,
+    pub source: String,
+    pub title: String,
+    pub snippet: String,
+    pub updated_at: String,
+}
+
+pub fn search_all(conn: &Connection, query: &str) -> Result<Vec<SearchResultDto>, AppError> {
+    let query = query.trim();
+    if query.is_empty() {
+        return Err(AppError::validation("Search query is required."));
+    }
+
+    let like_query = format!("%{query}%");
+    let mut stmt = conn.prepare(
+        "
+        select id, source, title, snippet, updated_at
+        from (
+            select id, 'task' as source, title, note as snippet, updated_at
+            from tasks
+            where title like ?1 or note like ?1
+            union all
+            select d.node_id as id, 'document' as source, n.title, d.content as snippet, d.updated_at
+            from documents d
+            join library_nodes n on n.id = d.node_id
+            where n.title like ?1 or d.content like ?1
+            union all
+            select id, 'daily_draft' as source, draft_date as title, content as snippet, updated_at
+            from daily_drafts
+            where content like ?1 or draft_date like ?1
+        )
+        order by updated_at desc
+        ",
+    )?;
+
+    let rows = stmt.query_map(params![like_query], |row| {
+        Ok(SearchResultDto {
+            id: row.get(0)?,
+            source: row.get(1)?,
+            title: row.get(2)?,
+            snippet: row.get(3)?,
+            updated_at: row.get(4)?,
+        })
+    })?;
+
+    let mut results = Vec::new();
+    for row in rows {
+        results.push(row?);
+    }
+    Ok(results)
+}
+
 #[cfg(test)]
 mod task_tests {
     use super::*;
@@ -516,5 +571,32 @@ mod day_trace_tests {
         assert!(kinds.contains(&"task_completed".to_string()));
         assert!(kinds.contains(&"document_updated".to_string()));
         assert!(kinds.contains(&"draft_updated".to_string()));
+    }
+}
+
+#[cfg(test)]
+mod search_tests {
+    use super::*;
+    use crate::db::migrations::{run_migrations, seed_categories};
+    use rusqlite::Connection;
+
+    #[test]
+    fn searches_tasks_documents_and_daily_drafts() {
+        let conn = Connection::open_in_memory().expect("open memory db");
+        run_migrations(&conn).expect("migrate");
+        seed_categories(&conn).expect("seed");
+
+        create_task(&conn, "SQLite migration", "", "2026-07-08").expect("create task");
+        let folder = create_library_folder(&conn, "category:experience", "Persistence").expect("create folder");
+        let document = create_library_document(&conn, &folder.id, "Database paths").expect("create document");
+        save_document(&conn, &document.node_id, "SQLite lives in app data.").expect("save document");
+        save_daily_draft(&conn, "2026-07-08", "Finished SQLite work.").expect("save draft");
+
+        let results = search_all(&conn, "SQLite").expect("search");
+        let sources: Vec<String> = results.iter().map(|result| result.source.clone()).collect();
+
+        assert!(sources.contains(&"task".to_string()));
+        assert!(sources.contains(&"document".to_string()));
+        assert!(sources.contains(&"daily_draft".to_string()));
     }
 }
