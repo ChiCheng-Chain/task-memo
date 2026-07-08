@@ -1,0 +1,14 @@
+:root {
+  --color-canvas: #f7f5ef;
+  --color-ink: #24221f;
+  --color-rail: #2f3437;
+  --color-line: #d8d2c6;
+  --color-action: #2f7d6d;
+  --color-warn: #b95c3a;
+  --color-code: #e9e2d4;
+  --font-interface: Inter, "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  --font-code: "JetBrains Mono", "Cascadia Code", monospace;
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  font-family: var(--font-interface);
+}
