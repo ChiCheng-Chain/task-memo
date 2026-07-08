@@ -1,2 +1,21 @@
 # task-memo
-极简桌面应用，无缝连接任务管理与知识沉淀。一键勾选待办，随手记录经验，让行动与思考同步发生。
+
+Local Windows desktop tool for capturing development tasks, notes, daily drafts, and searchable personal knowledge.
+
+## Development
+
+```powershell
+npm install
+npm run tauri dev
+```
+
+## Verification
+
+```powershell
+npm test
+npm run build
+cd src-tauri
+cargo test
+```
+
+For Rust commands on Windows, run them from a Visual Studio Build Tools developer environment or call `VsDevCmd.bat` first.
