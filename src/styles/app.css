@@ -247,3 +247,31 @@ textarea {
   font-family: var(--font-code);
   line-height: 1.55;
 }
+
+.day-timeline {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0 0 0 16px;
+  border-left: 1px solid var(--color-line);
+  list-style: none;
+}
+
+.trace-item {
+  display: grid;
+  grid-template-columns: 64px 150px 1fr;
+  gap: 12px;
+  align-items: center;
+  min-height: 38px;
+  border-bottom: 1px solid rgb(216 210 198 / 60%);
+}
+
+.trace-item time,
+.trace-kind {
+  font-family: var(--font-code);
+  font-size: 12px;
+}
+
+.trace-kind {
+  color: rgb(36 34 31 / 62%);
+}

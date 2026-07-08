@@ -47,3 +47,10 @@ export interface DailyDraft {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface DayTraceItem {
+  id: string;
+  kind: string;
+  title: string;
+  occurredAt: string;
+}

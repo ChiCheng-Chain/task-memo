@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { Today } from "../pages/Today";
 import { Library } from "../pages/Library";
 import { DailyDraft } from "../pages/DailyDraft";
+import { DayView } from "../pages/DayView";
 import "../styles/tokens.css";
 import "../styles/app.css";
 import { taskApi, todayKey } from "./api";
 import type { Task } from "./types";
 
 export function App() {
-  const [activeView, setActiveView] = useState<"today" | "library" | "draft">("today");
+  const [activeView, setActiveView] = useState<"today" | "library" | "draft" | "day">("today");
   const [date] = useState(todayKey());
   const [tasks, setTasks] = useState<Task[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +50,9 @@ export function App() {
         <button className={`rail-item ${activeView === "draft" ? "rail-item-active" : ""}`} onClick={() => setActiveView("draft")}>
           Draft
         </button>
-        <button className="rail-item">Dates</button>
+        <button className={`rail-item ${activeView === "day" ? "rail-item-active" : ""}`} onClick={() => setActiveView("day")}>
+          Dates
+        </button>
         <button className="rail-item">Search</button>
       </aside>
       <section className="workbench">
@@ -60,8 +63,10 @@ export function App() {
           </>
         ) : activeView === "library" ? (
           <Library />
-        ) : (
+        ) : activeView === "draft" ? (
           <DailyDraft date={date} />
+        ) : (
+          <DayView date={date} />
         )}
       </section>
       <aside className="inspector" aria-label="Inspector">

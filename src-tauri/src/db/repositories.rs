@@ -354,6 +354,57 @@ pub fn save_daily_draft(conn: &Connection, draft_date: &str, content: &str) -> R
     .map_err(AppError::from)
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct DayTraceItemDto {
+    pub id: String,
+    pub kind: String,
+    pub title: String,
+    pub occurred_at: String,
+}
+
+pub fn get_day_trace(conn: &Connection, day: &str) -> Result<Vec<DayTraceItemDto>, AppError> {
+    let mut stmt = conn.prepare(
+        "
+        select id, kind, title, occurred_at
+        from (
+            select id, 'task_created' as kind, title, created_at as occurred_at
+            from tasks
+            where substr(created_at, 1, 10) = ?1
+            union all
+            select id, 'task_completed' as kind, title, completed_at as occurred_at
+            from tasks
+            where completed_at is not null and substr(completed_at, 1, 10) = ?1
+            union all
+            select n.id, 'document_updated' as kind, n.title, d.updated_at as occurred_at
+            from documents d
+            join library_nodes n on n.id = d.node_id
+            where substr(d.updated_at, 1, 10) = ?1
+            union all
+            select id, 'draft_updated' as kind, 'Daily draft' as title, updated_at as occurred_at
+            from daily_drafts
+            where draft_date = ?1
+        )
+        order by occurred_at asc
+        ",
+    )?;
+
+    let rows = stmt.query_map(params![day], |row| {
+        Ok(DayTraceItemDto {
+            id: row.get(0)?,
+            kind: row.get(1)?,
+            title: row.get(2)?,
+            occurred_at: row.get(3)?,
+        })
+    })?;
+
+    let mut items = Vec::new();
+    for row in rows {
+        items.push(row?);
+    }
+    Ok(items)
+}
+
 #[cfg(test)]
 mod task_tests {
     use super::*;
@@ -436,5 +487,34 @@ mod daily_tests {
 
         assert_eq!(first.id, second.id);
         assert_eq!(second.content, "Updated draft");
+    }
+}
+
+#[cfg(test)]
+mod day_trace_tests {
+    use super::*;
+    use crate::db::migrations::{run_migrations, seed_categories};
+    use rusqlite::Connection;
+
+    #[test]
+    fn returns_trace_items_for_day_activity() {
+        let conn = Connection::open_in_memory().expect("open memory db");
+        run_migrations(&conn).expect("migrate");
+        seed_categories(&conn).expect("seed");
+
+        let task = create_task(&conn, "Fix login state", "", "2026-07-08").expect("create task");
+        complete_task(&conn, &task.id).expect("complete task");
+        let folder = create_library_folder(&conn, "category:experience", "Tauri").expect("create folder");
+        let document = create_library_document(&conn, &folder.id, "SQLite path").expect("create document");
+        save_document(&conn, &document.node_id, "Use app data dir.").expect("save document");
+        save_daily_draft(&conn, "2026-07-08", "Today I wired persistence.").expect("save draft");
+
+        let trace = get_day_trace(&conn, "2026-07-08").expect("get trace");
+        let kinds: Vec<String> = trace.iter().map(|item| item.kind.clone()).collect();
+
+        assert!(kinds.contains(&"task_created".to_string()));
+        assert!(kinds.contains(&"task_completed".to_string()));
+        assert!(kinds.contains(&"document_updated".to_string()));
+        assert!(kinds.contains(&"draft_updated".to_string()));
     }
 }

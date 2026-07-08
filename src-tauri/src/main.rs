@@ -7,6 +7,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::daily::get_daily_draft,
             commands::daily::save_daily_draft,
+            commands::day::get_day_trace,
             commands::library::list_library_nodes,
             commands::library::create_library_folder,
             commands::library::create_library_document,
