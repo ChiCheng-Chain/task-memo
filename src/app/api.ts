@@ -39,6 +39,9 @@ export const libraryApi = {
   saveDocument(nodeId: string, content: string) {
     return invoke<DocumentRecord>("save_document", { input: { nodeId, content } });
   },
+  deleteNode(nodeId: string) {
+    return invoke<void>("delete_library_node", { nodeId });
+  },
 };
 
 export const dailyApi = {

@@ -175,6 +175,11 @@ textarea {
   cursor: pointer;
 }
 
+.toolbar button:disabled {
+  color: rgb(36 34 31 / 38%);
+  cursor: not-allowed;
+}
+
 .library-layout {
   display: grid;
   grid-template-columns: minmax(220px, 30%) minmax(360px, 1fr);

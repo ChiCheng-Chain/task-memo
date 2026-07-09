@@ -278,6 +278,20 @@ pub fn save_document(conn: &Connection, node_id: &str, content: &str) -> Result<
     get_document(conn, node_id)
 }
 
+pub fn delete_library_node(conn: &Connection, node_id: &str) -> Result<(), AppError> {
+    let node = get_library_node(conn, node_id)?;
+    if node.node_type == "category" {
+        return Err(AppError::validation("根分类不能删除。"));
+    }
+
+    let changed = conn.execute("delete from library_nodes where id = ?1", params![node_id])?;
+    if changed == 0 {
+        return Err(AppError::not_found("记录项不存在。"));
+    }
+
+    Ok(())
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct DailyDraftDto {
@@ -468,6 +482,7 @@ mod task_tests {
 
     fn test_conn() -> Connection {
         let conn = Connection::open_in_memory().expect("open memory db");
+        conn.pragma_update(None, "foreign_keys", "ON").expect("enable foreign keys");
         run_migrations(&conn).expect("migrate");
         seed_categories(&conn).expect("seed");
         conn
@@ -505,6 +520,7 @@ mod library_tests {
 
     fn test_conn() -> Connection {
         let conn = Connection::open_in_memory().expect("open memory db");
+        conn.pragma_update(None, "foreign_keys", "ON").expect("enable foreign keys");
         run_migrations(&conn).expect("migrate");
         seed_categories(&conn).expect("seed");
         conn
@@ -522,6 +538,31 @@ mod library_tests {
 
         let saved = save_document(&conn, &doc.node_id, "Remember stale closure behavior.").expect("save doc");
         assert_eq!(saved.content, "Remember stale closure behavior.");
+    }
+
+    #[test]
+    fn delete_folder_cascades_to_documents() {
+        let conn = test_conn();
+        let folder = create_library_folder(&conn, "category:experience", "React").expect("create folder");
+        let doc = create_library_document(&conn, &folder.id, "useEffect closure").expect("create doc");
+
+        delete_library_node(&conn, &folder.id).expect("delete folder");
+
+        let document_count: i64 = conn
+            .query_row("select count(*) from documents where id = ?1", params![doc.id], |row| row.get(0))
+            .expect("count documents");
+        let error = get_document(&conn, &doc.node_id).expect_err("document should be deleted");
+        assert_eq!(document_count, 0);
+        assert_eq!(error.code, "not_found");
+    }
+
+    #[test]
+    fn delete_library_node_rejects_categories() {
+        let conn = test_conn();
+
+        let error = delete_library_node(&conn, "category:experience").expect_err("reject category delete");
+
+        assert_eq!(error.code, "validation_error");
     }
 }
 

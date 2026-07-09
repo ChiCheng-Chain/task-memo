@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod commands;
 mod db;
 mod shortcuts;
@@ -24,6 +26,7 @@ fn main() {
             commands::library::create_library_document,
             commands::library::get_document,
             commands::library::save_document,
+            commands::library::delete_library_node,
             commands::search::search_all,
             commands::tasks::list_tasks,
             commands::tasks::create_task,

@@ -4,7 +4,7 @@ import type { LibraryNode } from "../app/types";
 interface LibraryTreeProps {
   nodes: LibraryNode[];
   selectedNodeId: string | null;
-  onSelectDocument: (nodeId: string) => void;
+  onSelectNode: (node: LibraryNode) => void;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -16,7 +16,7 @@ const categoryLabels: Record<string, string> = {
   affairs: "事务备忘",
 };
 
-export function LibraryTree({ nodes, selectedNodeId, onSelectDocument }: LibraryTreeProps) {
+export function LibraryTree({ nodes, selectedNodeId, onSelectNode }: LibraryTreeProps) {
   const byParent = new Map<string | null, LibraryNode[]>();
   for (const node of nodes) {
     const key = node.parentId ?? null;
@@ -29,7 +29,7 @@ export function LibraryTree({ nodes, selectedNodeId, onSelectDocument }: Library
         <button
           className={`tree-node ${selectedNodeId === node.id ? "tree-node-active" : ""}`}
           style={{ paddingLeft: 10 + depth * 16 }}
-          onClick={() => node.nodeType === "document" && onSelectDocument(node.id)}
+          onClick={() => onSelectNode(node)}
         >
           {node.nodeType === "category" ? (
             <LibraryIcon size={15} />

@@ -4,16 +4,18 @@ import type { DocumentRecord, LibraryNode } from "../app/types";
 import { LibraryTree } from "../components/LibraryTree";
 import { MarkdownEditor } from "../components/MarkdownEditor";
 
+const defaultSelectedNodeId = "category:experience";
+
 export function Library() {
   const [nodes, setNodes] = useState<LibraryNode[]>([]);
-  const [selectedParentId, setSelectedParentId] = useState("category:experience");
+  const [selectedNodeId, setSelectedNodeId] = useState(defaultSelectedNodeId);
   const [document, setDocument] = useState<DocumentRecord | null>(null);
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const selectedNode = useMemo(
-    () => nodes.find((node) => node.id === (document?.nodeId ?? selectedParentId)),
-    [document?.nodeId, nodes, selectedParentId],
+    () => nodes.find((node) => node.id === selectedNodeId),
+    [nodes, selectedNodeId],
   );
 
   async function loadNodes() {
@@ -24,11 +26,24 @@ export function Library() {
     loadNodes().catch(() => setError("无法加载记录箱。"));
   }, []);
 
-  async function selectDocument(nodeId: string) {
-    const next = await libraryApi.getDocument(nodeId);
-    setDocument(next);
-    setSelectedParentId(nodeId);
-    setContent(next.content);
+  function selectedParentForNewNode() {
+    if (selectedNode?.nodeType === "document") {
+      return selectedNode.parentId ?? defaultSelectedNodeId;
+    }
+    return selectedNode?.id ?? selectedNodeId;
+  }
+
+  async function selectNode(node: LibraryNode) {
+    setSelectedNodeId(node.id);
+    if (node.nodeType === "document") {
+      const next = await libraryApi.getDocument(node.id);
+      setDocument(next);
+      setContent(next.content);
+      return;
+    }
+
+    setDocument(null);
+    setContent("");
   }
 
   async function saveDocument() {
@@ -42,20 +57,33 @@ export function Library() {
   async function createFolder() {
     const title = window.prompt("文件夹名称");
     if (!title?.trim()) return;
-    const parentId = selectedNode?.nodeType === "document" ? selectedNode.parentId ?? "category:experience" : selectedParentId;
+    const parentId = selectedParentForNewNode();
     const folder = await libraryApi.createFolder(parentId, title.trim());
-    setSelectedParentId(folder.id);
+    setSelectedNodeId(folder.id);
+    setDocument(null);
+    setContent("");
     await loadNodes();
   }
 
   async function createDocument() {
     const title = window.prompt("文件名称");
     if (!title?.trim()) return;
-    const parentId = selectedNode?.nodeType === "document" ? selectedNode.parentId ?? "category:experience" : selectedParentId;
+    const parentId = selectedParentForNewNode();
     const next = await libraryApi.createDocument(parentId, title.trim());
     setDocument(next);
-    setSelectedParentId(next.nodeId);
+    setSelectedNodeId(next.nodeId);
     setContent(next.content);
+    await loadNodes();
+  }
+
+  async function deleteSelectedNode() {
+    if (!selectedNode || selectedNode.nodeType === "category") return;
+    if (!window.confirm(`确认删除“${selectedNode.title}”吗？`)) return;
+
+    await libraryApi.deleteNode(selectedNode.id);
+    setSelectedNodeId(selectedNode.parentId ?? defaultSelectedNodeId);
+    setDocument(null);
+    setContent("");
     await loadNodes();
   }
 
@@ -69,11 +97,14 @@ export function Library() {
         <div className="toolbar">
           <button onClick={createFolder}>新建文件夹</button>
           <button onClick={createDocument}>新建文件</button>
+          <button onClick={deleteSelectedNode} disabled={!selectedNode || selectedNode.nodeType === "category"}>
+            删除
+          </button>
         </div>
       </header>
       {error ? <p className="error-text">{error}</p> : null}
       <div className="library-layout">
-        <LibraryTree nodes={nodes} selectedNodeId={document?.nodeId ?? null} onSelectDocument={selectDocument} />
+        <LibraryTree nodes={nodes} selectedNodeId={selectedNodeId} onSelectNode={selectNode} />
         {document ? (
           <MarkdownEditor title={document.title} value={content} onChange={setContent} onSave={saveDocument} />
         ) : (

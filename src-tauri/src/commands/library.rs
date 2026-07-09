@@ -51,3 +51,9 @@ pub fn save_document(app: tauri::AppHandle, input: SaveDocumentInput) -> Result<
     let conn = open_app_connection(&app)?;
     repositories::save_document(&conn, &input.node_id, &input.content)
 }
+
+#[tauri::command]
+pub fn delete_library_node(app: tauri::AppHandle, node_id: String) -> Result<(), AppError> {
+    let conn = open_app_connection(&app)?;
+    repositories::delete_library_node(&conn, &node_id)
+}

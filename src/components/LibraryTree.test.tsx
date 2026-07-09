@@ -38,17 +38,19 @@ const nodes: LibraryNode[] = [
 ];
 
 describe("LibraryTree", () => {
-  it("renders nested nodes and selects documents", async () => {
+  it("renders nested nodes and selects any node", async () => {
     const user = userEvent.setup();
-    const onSelectDocument = vi.fn();
+    const onSelectNode = vi.fn();
 
-    render(<LibraryTree nodes={nodes} selectedNodeId={null} onSelectDocument={onSelectDocument} />);
+    render(<LibraryTree nodes={nodes} selectedNodeId={null} onSelectNode={onSelectNode} />);
 
     expect(screen.getByText("经验")).toBeInTheDocument();
     expect(screen.getByText("React")).toBeInTheDocument();
 
+    await user.click(screen.getByRole("button", { name: /React/i }));
     await user.click(screen.getByRole("button", { name: /useEffect closure/i }));
 
-    expect(onSelectDocument).toHaveBeenCalledWith("doc-1");
+    expect(onSelectNode).toHaveBeenNthCalledWith(1, nodes[1]);
+    expect(onSelectNode).toHaveBeenNthCalledWith(2, nodes[2]);
   });
 });
