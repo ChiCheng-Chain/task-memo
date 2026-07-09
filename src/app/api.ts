@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { CreateTaskInput, DailyDraft, DayTraceItem, DocumentRecord, LibraryNode, SearchResult, SearchScope, Task } from "./types";
+import type { CreateTaskInput, DailyDraft, DayTraceItem, DocumentRecord, LibraryNode, SearchResult, SearchScope, Task, UpdateTaskInput } from "./types";
 
 export const taskApi = {
   list(taskDate: string) {
@@ -7,6 +7,9 @@ export const taskApi = {
   },
   create(input: CreateTaskInput) {
     return invoke<Task>("create_task", { input });
+  },
+  update(input: UpdateTaskInput) {
+    return invoke<Task>("update_task", { input });
   },
   complete(id: string) {
     return invoke<Task>("complete_task", { id });

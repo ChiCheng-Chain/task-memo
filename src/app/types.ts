@@ -18,6 +18,10 @@ export interface CreateTaskInput {
   taskDate: string;
 }
 
+export interface UpdateTaskInput extends CreateTaskInput {
+  id: string;
+}
+
 export type LibraryNodeType = "category" | "folder" | "document";
 
 export interface LibraryNode {

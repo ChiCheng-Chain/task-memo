@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NotebookPen } from "lucide-react";
 import { Today } from "../pages/Today";
 import { Library } from "../pages/Library";
 import { DailyDraft } from "../pages/DailyDraft";
@@ -33,6 +34,13 @@ export function App() {
     await refresh();
   }
 
+  async function updateTask(id: string, title: string) {
+    const task = tasks.find((item) => item.id === id);
+    if (!task) return;
+    await taskApi.update({ id, title, note: task.note, taskDate: task.taskDate });
+    await refresh();
+  }
+
   async function restoreTask(id: string) {
     await taskApi.restore(id);
     await refresh();
@@ -41,7 +49,9 @@ export function App() {
   return (
     <main className="app-shell">
       <aside className="app-rail" aria-label="主导航">
-        <div className="rail-mark">备</div>
+        <div className="rail-mark" aria-hidden="true">
+          <NotebookPen size={22} strokeWidth={1.8} />
+        </div>
         <button className={`rail-item ${activeView === "today" ? "rail-item-active" : ""}`} onClick={() => setActiveView("today")}>
           今日
         </button>
@@ -62,7 +72,7 @@ export function App() {
         {activeView === "today" ? (
           <>
             {error ? <p className="error-text">{error}</p> : null}
-            <Today date={date} tasks={tasks} onCreate={createTask} onComplete={completeTask} onRestore={restoreTask} />
+            <Today date={date} tasks={tasks} onCreate={createTask} onUpdate={updateTask} onComplete={completeTask} onRestore={restoreTask} />
           </>
         ) : activeView === "library" ? (
           <Library />

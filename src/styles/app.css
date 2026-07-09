@@ -18,7 +18,7 @@ textarea {
 .app-shell {
   display: grid;
   min-height: 100vh;
-  grid-template-columns: 76px minmax(0, 1fr) minmax(220px, 28vw);
+  grid-template-columns: 96px minmax(0, 1fr) minmax(220px, 28vw);
   background: var(--color-canvas);
 }
 
@@ -26,20 +26,20 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 14px 10px;
+  padding: 14px 12px;
   color: #f8f4ec;
   background: var(--color-rail);
 }
 
 .rail-mark {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   place-items: center;
   margin: 0 auto 12px;
   border: 1px solid rgb(255 255 255 / 18%);
-  font-family: var(--font-code);
-  font-size: 13px;
+  color: #f6ead1;
+  background: rgb(255 255 255 / 6%);
 }
 
 .rail-item {
@@ -48,6 +48,9 @@ textarea {
   color: rgb(255 255 255 / 72%);
   background: transparent;
   cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .rail-item-active,
@@ -134,7 +137,7 @@ textarea {
 
 .task-row {
   display: grid;
-  grid-template-columns: 36px 1fr;
+  grid-template-columns: 36px minmax(0, 1fr);
   gap: 10px;
   align-items: start;
   min-height: 48px;
@@ -149,6 +152,26 @@ textarea {
 .task-title,
 .task-note {
   margin: 0;
+}
+
+.task-content,
+.task-edit-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.task-edit-form {
+  grid-template-columns: minmax(0, 1fr) 34px 34px;
+}
+
+.task-edit-form input {
+  min-height: 34px;
+  border: 1px solid var(--color-line);
+  background: rgb(255 255 255 / 58%);
+  padding: 0 10px;
+  color: var(--color-ink);
 }
 
 .task-note {
@@ -366,7 +389,7 @@ textarea {
 
 @media (max-width: 1100px) {
   .app-shell {
-    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-columns: 96px minmax(0, 1fr);
   }
 
   .inspector {

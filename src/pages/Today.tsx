@@ -6,11 +6,12 @@ interface TodayProps {
   date: string;
   tasks: Task[];
   onCreate: (title: string) => void;
+  onUpdate: (id: string, title: string) => void;
   onComplete: (id: string) => void;
   onRestore: (id: string) => void;
 }
 
-export function Today({ date, tasks, onCreate, onComplete, onRestore }: TodayProps) {
+export function Today({ date, tasks, onCreate, onUpdate, onComplete, onRestore }: TodayProps) {
   return (
     <section>
       <header className="workbench-header">
@@ -20,7 +21,7 @@ export function Today({ date, tasks, onCreate, onComplete, onRestore }: TodayPro
         </div>
       </header>
       <TaskEditor onCreate={onCreate} />
-      <TaskList tasks={tasks} onComplete={onComplete} onRestore={onRestore} />
+      <TaskList tasks={tasks} onUpdate={onUpdate} onComplete={onComplete} onRestore={onRestore} />
     </section>
   );
 }
