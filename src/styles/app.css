@@ -18,7 +18,7 @@ textarea {
 .app-shell {
   display: grid;
   min-height: 100vh;
-  grid-template-columns: 76px minmax(420px, 1fr) minmax(280px, 34vw);
+  grid-template-columns: 76px minmax(0, 1fr) minmax(220px, 28vw);
   background: var(--color-canvas);
 }
 
@@ -59,6 +59,7 @@ textarea {
 
 .workbench {
   min-width: 0;
+  overflow: hidden;
   padding: 24px 28px;
   border-right: 1px solid var(--color-line);
 }
@@ -182,15 +183,16 @@ textarea {
 
 .library-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 30%) minmax(360px, 1fr);
+  grid-template-columns: minmax(190px, 260px) minmax(0, 1fr);
   gap: 20px;
   min-height: calc(100vh - 128px);
 }
 
 .library-tree {
+  min-width: 0;
   overflow: auto;
   border-right: 1px solid var(--color-line);
-  padding-right: 10px;
+  padding-right: 12px;
 }
 
 .tree-node {
@@ -281,11 +283,15 @@ textarea {
   color: rgb(36 34 31 / 62%);
 }
 
+.search-panel {
+  margin-bottom: 18px;
+}
+
 .search-bar {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 10px;
 }
 
 .search-bar input {
@@ -304,6 +310,68 @@ textarea {
   background: rgb(255 255 255 / 44%);
   padding: 0 14px;
   cursor: pointer;
+}
+
+.search-bar button:disabled {
+  color: rgb(36 34 31 / 38%);
+  cursor: not-allowed;
+}
+
+.scope-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.scope-controls legend {
+  margin-bottom: 6px;
+  color: rgb(36 34 31 / 58%);
+  font-family: var(--font-code);
+  font-size: 12px;
+}
+
+.scope-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+}
+
+.date-toolbar {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.date-toolbar button,
+.date-toolbar input {
+  min-height: 34px;
+  border: 1px solid var(--color-line);
+  background: rgb(255 255 255 / 44%);
+  color: var(--color-ink);
+  padding: 0 10px;
+}
+
+.date-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgb(36 34 31 / 62%);
+}
+
+@media (max-width: 1100px) {
+  .app-shell {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .inspector {
+    display: none;
+  }
 }
 
 .search-results {

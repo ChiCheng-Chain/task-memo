@@ -429,11 +429,27 @@ pub struct SearchResultDto {
     pub updated_at: String,
 }
 
-pub fn search_all(conn: &Connection, query: &str) -> Result<Vec<SearchResultDto>, AppError> {
+pub fn all_search_sources() -> Vec<String> {
+    vec!["task".to_string(), "document".to_string(), "daily_draft".to_string()]
+}
+
+pub fn search_all(conn: &Connection, query: &str, sources: &[String]) -> Result<Vec<SearchResultDto>, AppError> {
     let query = query.trim();
     if query.is_empty() {
         return Err(AppError::validation("搜索内容不能为空。"));
     }
+    if sources.is_empty() {
+        return Err(AppError::validation("请至少选择一个检索范围。"));
+    }
+
+    let allowed_sources = all_search_sources();
+    if sources.iter().any(|source| !allowed_sources.contains(source)) {
+        return Err(AppError::validation("检索范围不支持。"));
+    }
+
+    let include_tasks = sources.iter().any(|source| source == "task") as i64;
+    let include_documents = sources.iter().any(|source| source == "document") as i64;
+    let include_daily_drafts = sources.iter().any(|source| source == "daily_draft") as i64;
 
     let like_query = format!("%{query}%");
     let mut stmt = conn.prepare(
@@ -442,22 +458,22 @@ pub fn search_all(conn: &Connection, query: &str) -> Result<Vec<SearchResultDto>
         from (
             select id, 'task' as source, title, note as snippet, updated_at
             from tasks
-            where title like ?1 or note like ?1
+            where ?2 = 1 and (title like ?1 or note like ?1)
             union all
             select d.node_id as id, 'document' as source, n.title, d.content as snippet, d.updated_at
             from documents d
             join library_nodes n on n.id = d.node_id
-            where n.title like ?1 or d.content like ?1
+            where ?3 = 1 and (n.title like ?1 or d.content like ?1)
             union all
             select id, 'daily_draft' as source, draft_date as title, content as snippet, updated_at
             from daily_drafts
-            where content like ?1 or draft_date like ?1
+            where ?4 = 1 and (content like ?1 or draft_date like ?1)
         )
         order by updated_at desc
         ",
     )?;
 
-    let rows = stmt.query_map(params![like_query], |row| {
+    let rows = stmt.query_map(params![like_query, include_tasks, include_documents, include_daily_drafts], |row| {
         Ok(SearchResultDto {
             id: row.get(0)?,
             source: row.get(1)?,
@@ -634,11 +650,29 @@ mod search_tests {
         save_document(&conn, &document.node_id, "SQLite lives in app data.").expect("save document");
         save_daily_draft(&conn, "2026-07-08", "Finished SQLite work.").expect("save draft");
 
-        let results = search_all(&conn, "SQLite").expect("search");
+        let results = search_all(&conn, "SQLite", &all_search_sources()).expect("search");
         let sources: Vec<String> = results.iter().map(|result| result.source.clone()).collect();
 
         assert!(sources.contains(&"task".to_string()));
         assert!(sources.contains(&"document".to_string()));
         assert!(sources.contains(&"daily_draft".to_string()));
+    }
+
+    #[test]
+    fn searches_only_requested_sources() {
+        let conn = Connection::open_in_memory().expect("open memory db");
+        run_migrations(&conn).expect("migrate");
+        seed_categories(&conn).expect("seed");
+
+        create_task(&conn, "SQLite migration", "", "2026-07-08").expect("create task");
+        let folder = create_library_folder(&conn, "category:experience", "Persistence").expect("create folder");
+        let document = create_library_document(&conn, &folder.id, "Database paths").expect("create document");
+        save_document(&conn, &document.node_id, "SQLite lives in app data.").expect("save document");
+        save_daily_draft(&conn, "2026-07-08", "Finished SQLite work.").expect("save draft");
+
+        let results = search_all(&conn, "SQLite", &["document".to_string()]).expect("search");
+        let sources: Vec<String> = results.iter().map(|result| result.source.clone()).collect();
+
+        assert_eq!(sources, vec!["document".to_string()]);
     }
 }

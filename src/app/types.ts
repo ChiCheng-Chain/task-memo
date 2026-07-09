@@ -62,3 +62,5 @@ export interface SearchResult {
   snippet: string;
   updatedAt: string;
 }
+
+export type SearchScope = "task" | "document" | "daily_draft";

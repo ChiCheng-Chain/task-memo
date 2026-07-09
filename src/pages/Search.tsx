@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { searchApi } from "../app/api";
-import type { SearchResult } from "../app/types";
+import type { SearchResult, SearchScope } from "../app/types";
 import { SearchBar } from "../components/SearchBar";
 
 const sourceLabels: Record<string, string> = {
@@ -13,10 +13,10 @@ export function SearchPage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  async function runSearch(query: string) {
+  async function runSearch(query: string, sources: SearchScope[]) {
     setError(null);
     try {
-      setResults(await searchApi.all(query));
+      setResults(await searchApi.all(query, sources));
     } catch {
       setError("无法执行搜索。");
     }

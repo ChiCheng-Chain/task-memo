@@ -1,0 +1,20 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="任务备忘图标">
+  <defs>
+    <linearGradient id="bg" x1="36" y1="20" x2="220" y2="236" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1f3a3d"/>
+      <stop offset="1" stop-color="#151816"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="72" y1="58" x2="184" y2="202" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff7df"/>
+      <stop offset="1" stop-color="#ded4b9"/>
+    </linearGradient>
+  </defs>
+  <rect x="18" y="18" width="220" height="220" rx="48" fill="url(#bg)"/>
+  <path d="M68 42h44v172H68z" fill="#d59f4a"/>
+  <path d="M84 74h94c13.255 0 24 10.745 24 24v76c0 13.255-10.745 24-24 24H84z" fill="url(#paper)"/>
+  <path d="M104 112h54" stroke="#33413e" stroke-width="10" stroke-linecap="round"/>
+  <path d="M104 140h39" stroke="#33413e" stroke-width="10" stroke-linecap="round"/>
+  <path d="M101 166l19 18 42-48" fill="none" stroke="#157b62" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M55 87l-18 18 18 18" fill="none" stroke="#f6ead1" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M201 87l18 18-18 18" fill="none" stroke="#f6ead1" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
