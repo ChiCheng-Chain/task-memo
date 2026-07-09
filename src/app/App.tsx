@@ -46,6 +46,11 @@ export function App() {
     await refresh();
   }
 
+  async function deleteTask(id: string) {
+    await taskApi.delete(id);
+    await refresh();
+  }
+
   return (
     <main className="app-shell">
       <aside className="app-rail" aria-label="主导航">
@@ -72,7 +77,15 @@ export function App() {
         {activeView === "today" ? (
           <>
             {error ? <p className="error-text">{error}</p> : null}
-            <Today date={date} tasks={tasks} onCreate={createTask} onUpdate={updateTask} onComplete={completeTask} onRestore={restoreTask} />
+            <Today
+              date={date}
+              tasks={tasks}
+              onCreate={createTask}
+              onUpdate={updateTask}
+              onComplete={completeTask}
+              onRestore={restoreTask}
+              onDelete={deleteTask}
+            />
           </>
         ) : activeView === "library" ? (
           <Library />

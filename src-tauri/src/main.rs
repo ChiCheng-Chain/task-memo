@@ -26,6 +26,7 @@ fn main() {
             commands::library::create_library_document,
             commands::library::get_document,
             commands::library::save_document,
+            commands::library::rename_library_node,
             commands::library::delete_library_node,
             commands::search::search_all,
             commands::tasks::list_tasks,
@@ -33,6 +34,7 @@ fn main() {
             commands::tasks::update_task,
             commands::tasks::complete_task,
             commands::tasks::restore_task,
+            commands::tasks::delete_task,
         ])
         .setup(|app| {
             let conn = db::connection::open_app_connection(app.handle())?;

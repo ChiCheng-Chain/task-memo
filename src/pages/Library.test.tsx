@@ -15,6 +15,7 @@ vi.mock("../app/api", async () => {
       createDocument: vi.fn(),
       getDocument: vi.fn(),
       saveDocument: vi.fn(),
+      renameNode: vi.fn(),
       deleteNode: vi.fn(),
     },
   };
@@ -105,6 +106,27 @@ describe("Library", () => {
 
     await waitFor(() => {
       expect(libraryApi.deleteNode).toHaveBeenCalledWith("doc-1");
+    });
+  });
+
+  it("renames the selected document", async () => {
+    const user = userEvent.setup();
+    vi.mocked(libraryApi.listNodes).mockResolvedValue(nodes);
+    vi.mocked(libraryApi.getDocument).mockResolvedValue(documentRecord);
+    vi.mocked(libraryApi.renameNode).mockResolvedValue({
+      ...nodes[2],
+      title: "Hooks closure",
+    });
+    vi.spyOn(window, "prompt").mockReturnValue("Hooks closure");
+
+    render(<Library />);
+
+    await user.click(await screen.findByRole("button", { name: /useEffect closure/i }));
+    await screen.findByDisplayValue("Remember stale closures.");
+    await user.click(screen.getByRole("button", { name: "重命名" }));
+
+    await waitFor(() => {
+      expect(libraryApi.renameNode).toHaveBeenCalledWith("doc-1", "Hooks closure");
     });
   });
 });

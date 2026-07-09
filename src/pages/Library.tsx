@@ -87,6 +87,18 @@ export function Library() {
     await loadNodes();
   }
 
+  async function renameSelectedNode() {
+    if (!selectedNode || selectedNode.nodeType === "category") return;
+    const title = window.prompt("新名称", selectedNode.title);
+    if (!title?.trim()) return;
+
+    const renamed = await libraryApi.renameNode(selectedNode.id, title.trim());
+    if (document?.nodeId === renamed.id) {
+      setDocument({ ...document, title: renamed.title, updatedAt: renamed.updatedAt });
+    }
+    await loadNodes();
+  }
+
   return (
     <section>
       <header className="workbench-header">
@@ -97,6 +109,9 @@ export function Library() {
         <div className="toolbar">
           <button onClick={createFolder}>新建文件夹</button>
           <button onClick={createDocument}>新建文件</button>
+          <button onClick={renameSelectedNode} disabled={!selectedNode || selectedNode.nodeType === "category"}>
+            重命名
+          </button>
           <button onClick={deleteSelectedNode} disabled={!selectedNode || selectedNode.nodeType === "category"}>
             删除
           </button>

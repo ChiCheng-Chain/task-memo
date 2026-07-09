@@ -157,7 +157,7 @@ textarea {
 .task-content,
 .task-edit-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) 34px 34px;
   gap: 8px;
   align-items: center;
 }

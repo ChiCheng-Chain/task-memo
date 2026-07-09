@@ -17,6 +17,9 @@ export const taskApi = {
   restore(id: string) {
     return invoke<Task>("restore_task", { id });
   },
+  delete(id: string) {
+    return invoke<void>("delete_task", { id });
+  },
 };
 
 export function todayKey(date = new Date()): string {
@@ -41,6 +44,9 @@ export const libraryApi = {
   },
   saveDocument(nodeId: string, content: string) {
     return invoke<DocumentRecord>("save_document", { input: { nodeId, content } });
+  },
+  renameNode(nodeId: string, title: string) {
+    return invoke<LibraryNode>("rename_library_node", { input: { nodeId, title } });
   },
   deleteNode(nodeId: string) {
     return invoke<void>("delete_library_node", { nodeId });

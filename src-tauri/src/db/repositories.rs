@@ -129,6 +129,14 @@ pub fn restore_task(conn: &Connection, id: &str) -> Result<TaskDto, AppError> {
     get_task(conn, id)
 }
 
+pub fn delete_task(conn: &Connection, id: &str) -> Result<(), AppError> {
+    let changed = conn.execute("delete from tasks where id = ?1", params![id])?;
+    if changed == 0 {
+        return Err(AppError::not_found("任务不存在。"));
+    }
+    Ok(())
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct LibraryNodeDto {
@@ -276,6 +284,29 @@ pub fn save_document(conn: &Connection, node_id: &str, content: &str) -> Result<
     }
     conn.execute("update library_nodes set updated_at = ?1 where id = ?2", params![now, node_id])?;
     get_document(conn, node_id)
+}
+
+pub fn rename_library_node(conn: &Connection, node_id: &str, title: &str) -> Result<LibraryNodeDto, AppError> {
+    let node = get_library_node(conn, node_id)?;
+    if node.node_type == "category" {
+        return Err(AppError::validation("根分类不能重命名。"));
+    }
+
+    let title = title.trim();
+    if title.is_empty() {
+        return Err(AppError::validation("标题不能为空。"));
+    }
+
+    let now = chrono::Utc::now().to_rfc3339();
+    let changed = conn.execute(
+        "update library_nodes set title = ?1, updated_at = ?2 where id = ?3",
+        params![title, now, node_id],
+    )?;
+    if changed == 0 {
+        return Err(AppError::not_found("记录项不存在。"));
+    }
+
+    get_library_node(conn, node_id)
 }
 
 pub fn delete_library_node(conn: &Connection, node_id: &str) -> Result<(), AppError> {
@@ -526,6 +557,17 @@ mod task_tests {
         let error = create_task(&conn, "   ", "", "2026-07-08").expect_err("reject empty title");
         assert_eq!(error.code, "validation_error");
     }
+
+    #[test]
+    fn delete_task_removes_it_from_list() {
+        let conn = test_conn();
+        let created = create_task(&conn, "Remove temp task", "", "2026-07-08").expect("create task");
+
+        delete_task(&conn, &created.id).expect("delete task");
+
+        let tasks = list_tasks(&conn, "2026-07-08").expect("list tasks");
+        assert!(tasks.is_empty());
+    }
 }
 
 #[cfg(test)]
@@ -577,6 +619,37 @@ mod library_tests {
         let conn = test_conn();
 
         let error = delete_library_node(&conn, "category:experience").expect_err("reject category delete");
+
+        assert_eq!(error.code, "validation_error");
+    }
+
+    #[test]
+    fn rename_library_folder_updates_title() {
+        let conn = test_conn();
+        let folder = create_library_folder(&conn, "category:experience", "React").expect("create folder");
+
+        let renamed = rename_library_node(&conn, &folder.id, "Hooks").expect("rename folder");
+
+        assert_eq!(renamed.title, "Hooks");
+    }
+
+    #[test]
+    fn rename_library_document_updates_document_title() {
+        let conn = test_conn();
+        let folder = create_library_folder(&conn, "category:experience", "React").expect("create folder");
+        let doc = create_library_document(&conn, &folder.id, "useEffect closure").expect("create doc");
+
+        rename_library_node(&conn, &doc.node_id, "Hooks closure").expect("rename document");
+
+        let renamed_doc = get_document(&conn, &doc.node_id).expect("get renamed document");
+        assert_eq!(renamed_doc.title, "Hooks closure");
+    }
+
+    #[test]
+    fn rename_library_node_rejects_categories() {
+        let conn = test_conn();
+
+        let error = rename_library_node(&conn, "category:experience", "Experience 2").expect_err("reject category rename");
 
         assert_eq!(error.code, "validation_error");
     }

@@ -9,9 +9,10 @@ interface TodayProps {
   onUpdate: (id: string, title: string) => void;
   onComplete: (id: string) => void;
   onRestore: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
-export function Today({ date, tasks, onCreate, onUpdate, onComplete, onRestore }: TodayProps) {
+export function Today({ date, tasks, onCreate, onUpdate, onComplete, onRestore, onDelete }: TodayProps) {
   return (
     <section>
       <header className="workbench-header">
@@ -21,7 +22,7 @@ export function Today({ date, tasks, onCreate, onUpdate, onComplete, onRestore }
         </div>
       </header>
       <TaskEditor onCreate={onCreate} />
-      <TaskList tasks={tasks} onUpdate={onUpdate} onComplete={onComplete} onRestore={onRestore} />
+      <TaskList tasks={tasks} onUpdate={onUpdate} onComplete={onComplete} onRestore={onRestore} onDelete={onDelete} />
     </section>
   );
 }

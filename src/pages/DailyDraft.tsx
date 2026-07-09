@@ -22,12 +22,21 @@ export function DailyDraft({ date }: DailyDraftProps) {
     setContent(saved.content);
   }
 
+  async function clearDraft() {
+    if (!window.confirm(`确认清空 ${date} 的日报草稿吗？`)) return;
+    const saved = await dailyApi.saveDraft(date, "");
+    setContent(saved.content);
+  }
+
   return (
     <section>
       <header className="workbench-header">
         <div>
           <p className="eyebrow">{date}</p>
           <h1>日报草稿</h1>
+        </div>
+        <div className="toolbar">
+          <button onClick={clearDraft}>清空草稿</button>
         </div>
       </header>
       {error ? <p className="error-text">{error}</p> : null}

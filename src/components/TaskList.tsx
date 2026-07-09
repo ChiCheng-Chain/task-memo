@@ -1,4 +1,4 @@
-import { Check, Pencil, RotateCcw, Save, X } from "lucide-react";
+import { Check, Pencil, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { FormEvent, useState } from "react";
 import type { Task } from "../app/types";
 
@@ -7,9 +7,10 @@ interface TaskListProps {
   onUpdate: (id: string, title: string) => void;
   onComplete: (id: string) => void;
   onRestore: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
-export function TaskList({ tasks, onUpdate, onComplete, onRestore }: TaskListProps) {
+export function TaskList({ tasks, onUpdate, onComplete, onRestore, onDelete }: TaskListProps) {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
 
@@ -29,6 +30,11 @@ export function TaskList({ tasks, onUpdate, onComplete, onRestore }: TaskListPro
     if (!nextTitle) return;
     onUpdate(task.id, nextTitle);
     cancelEditing();
+  }
+
+  function deleteTask(task: Task) {
+    if (!window.confirm(`确认删除“${task.title}”吗？`)) return;
+    onDelete(task.id);
   }
 
   return (
@@ -67,6 +73,9 @@ export function TaskList({ tasks, onUpdate, onComplete, onRestore }: TaskListPro
                 </div>
                 <button className="icon-button" aria-label={`编辑 ${task.title}`} onClick={() => startEditing(task)}>
                   <Pencil size={15} />
+                </button>
+                <button className="icon-button" aria-label={`删除 ${task.title}`} onClick={() => deleteTask(task)}>
+                  <Trash2 size={15} />
                 </button>
               </div>
             )}

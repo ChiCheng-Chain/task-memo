@@ -48,3 +48,9 @@ pub fn restore_task(app: tauri::AppHandle, id: String) -> Result<repositories::T
     let conn = open_app_connection(&app)?;
     repositories::restore_task(&conn, &id)
 }
+
+#[tauri::command]
+pub fn delete_task(app: tauri::AppHandle, id: String) -> Result<(), AppError> {
+    let conn = open_app_connection(&app)?;
+    repositories::delete_task(&conn, &id)
+}

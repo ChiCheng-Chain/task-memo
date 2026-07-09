@@ -35,6 +35,8 @@ describe("Today", () => {
     const onCreate = vi.fn();
     const onUpdate = vi.fn();
     const onRestore = vi.fn();
+    const onDelete = vi.fn();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
 
     render(
       <Today
@@ -44,6 +46,7 @@ describe("Today", () => {
         onUpdate={onUpdate}
         onComplete={vi.fn()}
         onRestore={onRestore}
+        onDelete={onDelete}
       />,
     );
 
@@ -65,5 +68,9 @@ describe("Today", () => {
     await user.click(screen.getByRole("button", { name: "回退完成 Review PR" }));
 
     expect(onRestore).toHaveBeenCalledWith("2");
+
+    await user.click(screen.getByRole("button", { name: "删除 Wire SQLite" }));
+
+    expect(onDelete).toHaveBeenCalledWith("1");
   });
 });

@@ -16,6 +16,13 @@ pub struct SaveDocumentInput {
     pub content: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RenameLibraryNodeInput {
+    pub node_id: String,
+    pub title: String,
+}
+
 #[tauri::command]
 pub fn list_library_nodes(app: tauri::AppHandle) -> Result<Vec<repositories::LibraryNodeDto>, AppError> {
     let conn = open_app_connection(&app)?;
@@ -50,6 +57,15 @@ pub fn get_document(app: tauri::AppHandle, node_id: String) -> Result<repositori
 pub fn save_document(app: tauri::AppHandle, input: SaveDocumentInput) -> Result<repositories::DocumentDto, AppError> {
     let conn = open_app_connection(&app)?;
     repositories::save_document(&conn, &input.node_id, &input.content)
+}
+
+#[tauri::command]
+pub fn rename_library_node(
+    app: tauri::AppHandle,
+    input: RenameLibraryNodeInput,
+) -> Result<repositories::LibraryNodeDto, AppError> {
+    let conn = open_app_connection(&app)?;
+    repositories::rename_library_node(&conn, &input.node_id, &input.title)
 }
 
 #[tauri::command]
