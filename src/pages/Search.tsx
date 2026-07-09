@@ -3,6 +3,12 @@ import { searchApi } from "../app/api";
 import type { SearchResult } from "../app/types";
 import { SearchBar } from "../components/SearchBar";
 
+const sourceLabels: Record<string, string> = {
+  task: "任务",
+  document: "文档",
+  daily_draft: "日报草稿",
+};
+
 export function SearchPage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +18,7 @@ export function SearchPage() {
     try {
       setResults(await searchApi.all(query));
     } catch {
-      setError("Could not run search.");
+      setError("无法执行搜索。");
     }
   }
 
@@ -20,8 +26,8 @@ export function SearchPage() {
     <section>
       <header className="workbench-header">
         <div>
-          <p className="eyebrow">Search</p>
-          <h1>Find</h1>
+          <p className="eyebrow">搜索</p>
+          <h1>查找</h1>
         </div>
       </header>
       <SearchBar onSearch={runSearch} />
@@ -29,7 +35,7 @@ export function SearchPage() {
       <div className="search-results">
         {results.map((result) => (
           <article className="search-result" key={`${result.source}:${result.id}`}>
-            <span className="search-source">{result.source.replace(/_/g, " ")}</span>
+            <span className="search-source">{sourceLabels[result.source] ?? result.source}</span>
             <h2>{result.title}</h2>
             <p>{result.snippet}</p>
           </article>

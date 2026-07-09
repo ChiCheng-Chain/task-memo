@@ -14,7 +14,7 @@ export function DailyDraft({ date }: DailyDraftProps) {
     dailyApi
       .getDraft(date)
       .then((draft) => setContent(draft.content))
-      .catch(() => setError("Could not load daily draft."));
+      .catch(() => setError("无法加载日报草稿。"));
   }, [date]);
 
   async function saveDraft() {
@@ -27,11 +27,11 @@ export function DailyDraft({ date }: DailyDraftProps) {
       <header className="workbench-header">
         <div>
           <p className="eyebrow">{date}</p>
-          <h1>Daily draft</h1>
+          <h1>日报草稿</h1>
         </div>
       </header>
       {error ? <p className="error-text">{error}</p> : null}
-      <MarkdownEditor title="Daily draft" value={content} onChange={setContent} onSave={saveDraft} />
+      <MarkdownEditor title="日报草稿" value={content} onChange={setContent} onSave={saveDraft} />
     </section>
   );
 }

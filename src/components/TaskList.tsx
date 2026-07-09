@@ -14,7 +14,7 @@ export function TaskList({ tasks, onComplete, onRestore }: TaskListProps) {
         <article className={`task-row task-row-${task.status}`} key={task.id}>
           <button
             className="icon-button"
-            aria-label={task.status === "active" ? `Complete ${task.title}` : `Restore ${task.title}`}
+            aria-label={task.status === "active" ? `完成 ${task.title}` : `恢复 ${task.title}`}
             onClick={() => (task.status === "active" ? onComplete(task.id) : onRestore(task.id))}
           >
             {task.status === "active" ? <Check size={16} /> : <RotateCcw size={16} />}

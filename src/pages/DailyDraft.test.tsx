@@ -35,11 +35,11 @@ describe("DailyDraft", () => {
 
     render(<DailyDraft date="2026-07-08" />);
 
-    const editor = await screen.findByLabelText("Markdown content");
+    const editor = await screen.findByLabelText("Markdown 内容");
     expect(editor).toHaveValue("Initial draft");
 
     await user.type(editor, " updated");
-    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
 
     await waitFor(() => {
       expect(dailyApi.saveDraft).toHaveBeenCalledWith("2026-07-08", "Initial draft updated");

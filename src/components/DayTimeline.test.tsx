@@ -17,7 +17,7 @@ describe("DayTimeline", () => {
     render(<DayTimeline items={items} />);
 
     expect(screen.getByText("09:42")).toBeInTheDocument();
-    expect(screen.getByText("task completed")).toBeInTheDocument();
+    expect(screen.getByText("任务完成")).toBeInTheDocument();
     expect(screen.getByText("Fix login state")).toBeInTheDocument();
   });
 });

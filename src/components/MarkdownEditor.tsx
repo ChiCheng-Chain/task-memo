@@ -10,9 +10,9 @@ export function MarkdownEditor({ title, value, onChange, onSave }: MarkdownEdito
     <section className="markdown-editor">
       <header className="editor-header">
         <h2>{title}</h2>
-        <button onClick={onSave}>Save changes</button>
+        <button onClick={onSave}>保存修改</button>
       </header>
-      <textarea aria-label="Markdown content" value={value} onChange={(event) => onChange(event.target.value)} />
+      <textarea aria-label="Markdown 内容" value={value} onChange={(event) => onChange(event.target.value)} />
     </section>
   );
 }

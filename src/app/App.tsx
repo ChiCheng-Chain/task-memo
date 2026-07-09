@@ -20,7 +20,7 @@ export function App() {
   }
 
   useEffect(() => {
-    refresh().catch(() => setError("Could not load today's tasks."));
+    refresh().catch(() => setError("无法加载今天的任务。"));
   }, [date]);
 
   async function createTask(title: string) {
@@ -40,22 +40,22 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <aside className="app-rail" aria-label="Primary">
-        <div className="rail-mark">TM</div>
+      <aside className="app-rail" aria-label="主导航">
+        <div className="rail-mark">备</div>
         <button className={`rail-item ${activeView === "today" ? "rail-item-active" : ""}`} onClick={() => setActiveView("today")}>
-          Today
+          今日
         </button>
         <button className={`rail-item ${activeView === "library" ? "rail-item-active" : ""}`} onClick={() => setActiveView("library")}>
-          Library
+          记录箱
         </button>
         <button className={`rail-item ${activeView === "draft" ? "rail-item-active" : ""}`} onClick={() => setActiveView("draft")}>
-          Draft
+          日报
         </button>
         <button className={`rail-item ${activeView === "day" ? "rail-item-active" : ""}`} onClick={() => setActiveView("day")}>
-          Dates
+          日期
         </button>
         <button className={`rail-item ${activeView === "search" ? "rail-item-active" : ""}`} onClick={() => setActiveView("search")}>
-          Search
+          搜索
         </button>
       </aside>
       <section className="workbench">
@@ -74,8 +74,8 @@ export function App() {
           <SearchPage />
         )}
       </section>
-      <aside className="inspector" aria-label="Inspector">
-        <p className="eyebrow">Inspector</p>
+      <aside className="inspector" aria-label="侧栏">
+        <p className="eyebrow">侧栏</p>
       </aside>
     </main>
   );

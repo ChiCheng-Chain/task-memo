@@ -19,14 +19,14 @@ export function TaskEditor({ onCreate }: TaskEditorProps) {
   return (
     <form className="task-editor" onSubmit={submit}>
       <input
-        aria-label="New task"
+        aria-label="新任务"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
-        placeholder="Capture next action"
+        placeholder="记录下一步要做什么"
       />
       <button type="submit">
         <Plus size={16} />
-        Add task
+        添加任务
       </button>
     </form>
   );

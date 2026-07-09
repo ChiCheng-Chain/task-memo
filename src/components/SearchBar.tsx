@@ -17,10 +17,10 @@ export function SearchBar({ onSearch }: SearchBarProps) {
 
   return (
     <form className="search-bar" onSubmit={submit}>
-      <input aria-label="Search query" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search tasks and notes" />
+      <input aria-label="搜索内容" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索任务和记录" />
       <button type="submit">
         <Search size={16} />
-        Search
+        搜索
       </button>
     </form>
   );

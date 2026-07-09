@@ -10,8 +10,8 @@ describe("SearchBar", () => {
 
     render(<SearchBar onSearch={onSearch} />);
 
-    await user.type(screen.getByLabelText("Search query"), "  SQLite  ");
-    await user.click(screen.getByRole("button", { name: "Search" }));
+    await user.type(screen.getByLabelText("搜索内容"), "  SQLite  ");
+    await user.click(screen.getByRole("button", { name: "搜索" }));
 
     expect(onSearch).toHaveBeenCalledWith("SQLite");
   });

@@ -16,7 +16,7 @@ export function Today({ date, tasks, onCreate, onComplete, onRestore }: TodayPro
       <header className="workbench-header">
         <div>
           <p className="eyebrow">{date}</p>
-          <h1>Today</h1>
+          <h1>今日</h1>
         </div>
       </header>
       <TaskEditor onCreate={onCreate} />

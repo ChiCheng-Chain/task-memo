@@ -53,7 +53,7 @@ pub fn list_tasks(conn: &Connection, task_date: &str) -> Result<Vec<TaskDto>, Ap
 pub fn create_task(conn: &Connection, title: &str, note: &str, task_date: &str) -> Result<TaskDto, AppError> {
     let title = title.trim();
     if title.is_empty() {
-        return Err(AppError::validation("Task title is required."));
+        return Err(AppError::validation("任务标题不能为空。"));
     }
 
     let now = chrono::Utc::now().to_rfc3339();
@@ -85,13 +85,13 @@ pub fn get_task(conn: &Connection, id: &str) -> Result<TaskDto, AppError> {
         row_to_task,
     )
     .optional()?
-    .ok_or_else(|| AppError::not_found("Task was not found."))
+    .ok_or_else(|| AppError::not_found("任务不存在。"))
 }
 
 pub fn update_task(conn: &Connection, id: &str, title: &str, note: &str, task_date: &str) -> Result<TaskDto, AppError> {
     let title = title.trim();
     if title.is_empty() {
-        return Err(AppError::validation("Task title is required."));
+        return Err(AppError::validation("任务标题不能为空。"));
     }
 
     let now = chrono::Utc::now().to_rfc3339();
@@ -100,7 +100,7 @@ pub fn update_task(conn: &Connection, id: &str, title: &str, note: &str, task_da
         params![title, note, task_date, now, id],
     )?;
     if changed == 0 {
-        return Err(AppError::not_found("Task was not found."));
+        return Err(AppError::not_found("任务不存在。"));
     }
     get_task(conn, id)
 }
@@ -112,7 +112,7 @@ pub fn complete_task(conn: &Connection, id: &str) -> Result<TaskDto, AppError> {
         params![now, id],
     )?;
     if changed == 0 {
-        return Err(AppError::not_found("Task was not found."));
+        return Err(AppError::not_found("任务不存在。"));
     }
     get_task(conn, id)
 }
@@ -124,7 +124,7 @@ pub fn restore_task(conn: &Connection, id: &str) -> Result<TaskDto, AppError> {
         params![now, id],
     )?;
     if changed == 0 {
-        return Err(AppError::not_found("Task was not found."));
+        return Err(AppError::not_found("任务不存在。"));
     }
     get_task(conn, id)
 }
@@ -200,14 +200,14 @@ pub fn create_library_document(conn: &Connection, parent_id: &str, title: &str) 
 fn create_library_node(conn: &Connection, parent_id: &str, node_type: &str, title: &str) -> Result<LibraryNodeDto, AppError> {
     let title = title.trim();
     if title.is_empty() {
-        return Err(AppError::validation("Library title is required."));
+        return Err(AppError::validation("标题不能为空。"));
     }
 
     let parent_exists: Option<String> = conn
         .query_row("select id from library_nodes where id = ?1", params![parent_id], |row| row.get(0))
         .optional()?;
     if parent_exists.is_none() {
-        return Err(AppError::not_found("Parent folder was not found."));
+        return Err(AppError::not_found("父级文件夹不存在。"));
     }
 
     let sort_order: i64 = conn.query_row(
@@ -238,7 +238,7 @@ fn get_library_node(conn: &Connection, id: &str) -> Result<LibraryNodeDto, AppEr
         row_to_library_node,
     )
     .optional()?
-    .ok_or_else(|| AppError::not_found("Library item was not found."))
+    .ok_or_else(|| AppError::not_found("记录项不存在。"))
 }
 
 pub fn get_document(conn: &Connection, node_id: &str) -> Result<DocumentDto, AppError> {
@@ -262,7 +262,7 @@ pub fn get_document(conn: &Connection, node_id: &str) -> Result<DocumentDto, App
         },
     )
     .optional()?
-    .ok_or_else(|| AppError::not_found("Document was not found."))
+    .ok_or_else(|| AppError::not_found("文档不存在。"))
 }
 
 pub fn save_document(conn: &Connection, node_id: &str, content: &str) -> Result<DocumentDto, AppError> {
@@ -272,7 +272,7 @@ pub fn save_document(conn: &Connection, node_id: &str, content: &str) -> Result<
         params![content, now, node_id],
     )?;
     if changed == 0 {
-        return Err(AppError::not_found("Document was not found."));
+        return Err(AppError::not_found("文档不存在。"));
     }
     conn.execute("update library_nodes set updated_at = ?1 where id = ?2", params![now, node_id])?;
     get_document(conn, node_id)
@@ -381,7 +381,7 @@ pub fn get_day_trace(conn: &Connection, day: &str) -> Result<Vec<DayTraceItemDto
             join library_nodes n on n.id = d.node_id
             where substr(d.updated_at, 1, 10) = ?1
             union all
-            select id, 'draft_updated' as kind, 'Daily draft' as title, updated_at as occurred_at
+            select id, 'draft_updated' as kind, '日报草稿' as title, updated_at as occurred_at
             from daily_drafts
             where draft_date = ?1
         )
@@ -418,7 +418,7 @@ pub struct SearchResultDto {
 pub fn search_all(conn: &Connection, query: &str) -> Result<Vec<SearchResultDto>, AppError> {
     let query = query.trim();
     if query.is_empty() {
-        return Err(AppError::validation("Search query is required."));
+        return Err(AppError::validation("搜索内容不能为空。"));
     }
 
     let like_query = format!("%{query}%");
@@ -556,15 +556,16 @@ mod day_trace_tests {
         let conn = Connection::open_in_memory().expect("open memory db");
         run_migrations(&conn).expect("migrate");
         seed_categories(&conn).expect("seed");
+        let today = chrono::Utc::now().date_naive().to_string();
 
-        let task = create_task(&conn, "Fix login state", "", "2026-07-08").expect("create task");
+        let task = create_task(&conn, "Fix login state", "", &today).expect("create task");
         complete_task(&conn, &task.id).expect("complete task");
         let folder = create_library_folder(&conn, "category:experience", "Tauri").expect("create folder");
         let document = create_library_document(&conn, &folder.id, "SQLite path").expect("create document");
         save_document(&conn, &document.node_id, "Use app data dir.").expect("save document");
-        save_daily_draft(&conn, "2026-07-08", "Today I wired persistence.").expect("save draft");
+        save_daily_draft(&conn, &today, "Today I wired persistence.").expect("save draft");
 
-        let trace = get_day_trace(&conn, "2026-07-08").expect("get trace");
+        let trace = get_day_trace(&conn, &today).expect("get trace");
         let kinds: Vec<String> = trace.iter().map(|item| item.kind.clone()).collect();
 
         assert!(kinds.contains(&"task_created".to_string()));

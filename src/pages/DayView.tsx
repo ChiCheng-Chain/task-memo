@@ -15,7 +15,7 @@ export function DayView({ date }: DayViewProps) {
     dayApi
       .trace(date)
       .then(setItems)
-      .catch(() => setError("Could not load day trace."));
+      .catch(() => setError("无法加载当天记录。"));
   }, [date]);
 
   return (
@@ -23,7 +23,7 @@ export function DayView({ date }: DayViewProps) {
       <header className="workbench-header">
         <div>
           <p className="eyebrow">{date}</p>
-          <h1>Day trace</h1>
+          <h1>当天记录</h1>
         </div>
       </header>
       {error ? <p className="error-text">{error}</p> : null}

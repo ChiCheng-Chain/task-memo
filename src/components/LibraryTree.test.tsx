@@ -44,7 +44,7 @@ describe("LibraryTree", () => {
 
     render(<LibraryTree nodes={nodes} selectedNodeId={null} onSelectDocument={onSelectDocument} />);
 
-    expect(screen.getByText("Experience")).toBeInTheDocument();
+    expect(screen.getByText("经验")).toBeInTheDocument();
     expect(screen.getByText("React")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /useEffect closure/i }));

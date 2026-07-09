@@ -35,9 +35,9 @@ describe("Today", () => {
 
     expect(screen.getByText("Wire SQLite")).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText("New task"), "Build Today view");
-    await user.click(screen.getByRole("button", { name: "Add task" }));
+    await user.type(screen.getByLabelText("新任务"), "构建今日视图");
+    await user.click(screen.getByRole("button", { name: "添加任务" }));
 
-    expect(onCreate).toHaveBeenCalledWith("Build Today view");
+    expect(onCreate).toHaveBeenCalledWith("构建今日视图");
   });
 });

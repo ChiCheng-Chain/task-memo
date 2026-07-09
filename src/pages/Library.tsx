@@ -21,7 +21,7 @@ export function Library() {
   }
 
   useEffect(() => {
-    loadNodes().catch(() => setError("Could not load library."));
+    loadNodes().catch(() => setError("无法加载记录箱。"));
   }, []);
 
   async function selectDocument(nodeId: string) {
@@ -40,7 +40,7 @@ export function Library() {
   }
 
   async function createFolder() {
-    const title = window.prompt("Folder name");
+    const title = window.prompt("文件夹名称");
     if (!title?.trim()) return;
     const parentId = selectedNode?.nodeType === "document" ? selectedNode.parentId ?? "category:experience" : selectedParentId;
     const folder = await libraryApi.createFolder(parentId, title.trim());
@@ -49,7 +49,7 @@ export function Library() {
   }
 
   async function createDocument() {
-    const title = window.prompt("Document name");
+    const title = window.prompt("文件名称");
     if (!title?.trim()) return;
     const parentId = selectedNode?.nodeType === "document" ? selectedNode.parentId ?? "category:experience" : selectedParentId;
     const next = await libraryApi.createDocument(parentId, title.trim());
@@ -63,12 +63,12 @@ export function Library() {
     <section>
       <header className="workbench-header">
         <div>
-          <p className="eyebrow">Library</p>
-          <h1>Notes</h1>
+          <p className="eyebrow">记录箱</p>
+          <h1>分类记录</h1>
         </div>
         <div className="toolbar">
-          <button onClick={createFolder}>New folder</button>
-          <button onClick={createDocument}>New document</button>
+          <button onClick={createFolder}>新建文件夹</button>
+          <button onClick={createDocument}>新建文件</button>
         </div>
       </header>
       {error ? <p className="error-text">{error}</p> : null}
@@ -77,7 +77,7 @@ export function Library() {
         {document ? (
           <MarkdownEditor title={document.title} value={content} onChange={setContent} onSave={saveDocument} />
         ) : (
-          <div className="empty-state">Select a document from the library.</div>
+          <div className="empty-state">从记录箱里选择一个文件。</div>
         )}
       </div>
     </section>

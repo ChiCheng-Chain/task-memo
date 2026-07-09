@@ -7,6 +7,15 @@ interface LibraryTreeProps {
   onSelectDocument: (nodeId: string) => void;
 }
 
+const categoryLabels: Record<string, string> = {
+  experience: "经验",
+  passwords: "密码",
+  ideas: "零散想法",
+  command_snippets: "命令片段",
+  pitfall_notes: "踩坑记录",
+  affairs: "事务备忘",
+};
+
 export function LibraryTree({ nodes, selectedNodeId, onSelectDocument }: LibraryTreeProps) {
   const byParent = new Map<string | null, LibraryNode[]>();
   for (const node of nodes) {
@@ -29,7 +38,7 @@ export function LibraryTree({ nodes, selectedNodeId, onSelectDocument }: Library
           ) : (
             <FileText size={15} />
           )}
-          <span>{node.title}</span>
+          <span>{node.nodeType === "category" && node.category ? categoryLabels[node.category] ?? node.title : node.title}</span>
         </button>
         {node.nodeType !== "document" ? renderNodes(node.id, depth + 1) : null}
       </div>
